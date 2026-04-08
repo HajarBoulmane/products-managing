@@ -11,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static groovy.lang.ExpandoMetaClassCreationHandle.disable;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -32,10 +34,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         return http
-                .formLogin(Customizer.withDefaults())
-                .authorizeHttpRequests(ar->ar.requestMatchers("/index/**").hasRole("USER"))
-                .authorizeHttpRequests(ar->ar.requestMatchers("/save/**","/delete/**").hasRole("ADMIN"))
+                .formLogin(f1->f1.loginPage("/login").permitAll())
+                .csrf(Customizer.withDefaults())
+                .authorizeHttpRequests(ar->ar.requestMatchers("/user/**").hasRole("USER"))
+                .authorizeHttpRequests(ar->ar.requestMatchers("/admin/**").hasRole("ADMIN"))
+                .authorizeHttpRequests(ar->ar.requestMatchers("/public/**","/webjars").permitAll())
                 .authorizeHttpRequests(ar->ar.anyRequest().authenticated())
+                .exceptionHandling(eh->eh.accessDeniedPage("/notAuthorized"))
                 .build();
 }
 }
