@@ -3,6 +3,7 @@ package net.hajar.products_managing.sec;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -15,6 +16,7 @@ import static groovy.lang.ExpandoMetaClassCreationHandle.disable;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -31,16 +33,22 @@ public class SecurityConfig {
 
     }
 
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .formLogin(f1->f1.loginPage("/login").permitAll())
+                .formLogin(fl -> fl
+                        .loginPage("/login")
+                        .permitAll()
+                )
                 .csrf(Customizer.withDefaults())
-                .authorizeHttpRequests(ar->ar.requestMatchers("/user/**").hasRole("USER"))
-                .authorizeHttpRequests(ar->ar.requestMatchers("/admin/**").hasRole("ADMIN"))
-                .authorizeHttpRequests(ar->ar.requestMatchers("/public/**","/webjars").permitAll())
-                .authorizeHttpRequests(ar->ar.anyRequest().authenticated())
-                .exceptionHandling(eh->eh.accessDeniedPage("/notAuthorized"))
+                .authorizeHttpRequests(ar -> ar
+                        .requestMatchers("/public/**", "/webjars/**", "/.well-known/**").permitAll()
+                        .requestMatchers("/user/**").hasRole("USER")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(eh -> eh.accessDeniedPage("/notAuthorized"))
                 .build();
-}
+    }
 }

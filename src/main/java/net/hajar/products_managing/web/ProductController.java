@@ -1,9 +1,11 @@
 package net.hajar.products_managing.web;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import net.hajar.products_managing.entities.Product;
 import net.hajar.products_managing.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -26,7 +28,7 @@ public class ProductController {
         return "products";
     }
 
-    @PostMapping("admin/delete")
+    @PostMapping("/admin/delete")
     public String delete(@RequestParam(name = "id") Long id) {
         productRepository.deleteById(id);
         return "redirect:/user/index";
@@ -37,14 +39,14 @@ public class ProductController {
         return "redirect:/user/index";
     }
 
-    @GetMapping("admin/newProduct")
+    @GetMapping("/admin/newProduct")
     public String newProduct(Model model) {
         model.addAttribute("product",new Product());
         return "new-product";
 
     }
 
-    @PostMapping("admin/saveProduct")
+    @PostMapping("/admin/saveProduct")
     public String saveProduct(@Valid Product product, BindingResult bindingResult ,Model model){
         if(bindingResult.hasErrors()) return "new-product";
         productRepository.save(product);
@@ -57,9 +59,16 @@ public class ProductController {
         return "notAuthorized";
     }
 
+
     @GetMapping("/login")
     public String login(){
         return "login";
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session){
+        session.invalidate();
+        return "redirect:/login";
     }
 
 }
